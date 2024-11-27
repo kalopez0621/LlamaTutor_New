@@ -19,14 +19,27 @@ const config: Config = {
     },
     extend: {
       colors: {
+        // Friendly color palette for middle school students
+        primary: "#FF7F50", // Coral for main elements
+        secondary: "#FFD700", // Gold for highlights
+        background: "#F0F8FF", // Light blue for background
+        accent: "#90EE90", // Light green for accents
+        danger: "#FF6347", // Tomato red for errors
         gray: colors.neutral,
       },
+      fontFamily: {
+        // Playful fonts
+        body: ["Comic Sans MS", "Arial", "sans-serif"], // Body text
+        header: ["Caveat", "cursive"], // Headers and titles
+      },
       backgroundImage: {
+        // Updated gradients for a fun look
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "custom-gradient":
-          "linear-gradient(150deg, #1B1B16 1.28%, #565646 90.75%)",
         "gradient-conic":
           "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+        "custom-gradient":
+          "linear-gradient(150deg, #FF7F50 1.28%, #FFD700 90.75%)", // Friendly custom gradient
+        "fun-pattern": "url('/public/new-bg.png')", // Add a math-themed background image here
       },
     },
   },

@@ -58,12 +58,16 @@ const InitialInputArea: FC<TInputAreaProps> = ({
             value={ageGroup}
             onChange={(e) => setAgeGroup(e.target.value)}
           >
-            <option>Elementary School</option>
-            <option>Middle School</option>
-            <option>High School</option>
-            <option>College</option>
-            <option>Undergrad</option>
-            <option>Graduate</option>
+            <option value="Grade 6 - Regular">Grade 6 - Regular</option>
+            <option value="Grade 6 - Advanced">Grade 6 - Advanced</option>
+            <option value="Grade 6 - Foundational">Grade 6 - Foundational</option>
+            <option value="Grade 7 - Regular">Grade 7 - Regular</option>
+            <option value="Grade 7 - Advanced">Grade 7 - Advanced</option>
+            <option value="Grade 7 - Foundational">Grade 7 - Foundational</option>
+            <option value="Grade 8 - Pre-Algebra">Grade 8 - Pre-Algebra</option>
+            <option value="Grade 8 - Foundational">Grade 8 - Foundational</option>
+            <option value="Algebra 1">Algebra 1</option>
+            <option value="Geometry">Geometry</option>
           </select>
         </div>
       </div>

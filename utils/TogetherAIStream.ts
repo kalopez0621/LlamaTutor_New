@@ -17,18 +17,14 @@ export interface TogetherAIStreamPayload {
   stream: boolean;
 }
 
-// const together = new Together({
-//   apiKey: process.env["TOGETHER_API_KEY"],
-//   baseURL: "https://together.helicone.ai/v1",
-//   defaultHeaders: {
-//     "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
-//   },
-// });
-
 export async function TogetherAIStream(payload: TogetherAIStreamPayload) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 
+  // Log the payload being sent
+  console.log("Payload sent to Together API:", payload);
+
+  // API request
   const res = await fetch("https://together.helicone.ai/v1/chat/completions", {
     headers: {
       "Content-Type": "application/json",
@@ -39,9 +35,21 @@ export async function TogetherAIStream(payload: TogetherAIStreamPayload) {
     body: JSON.stringify(payload),
   });
 
+  // Log response status and headers
+  console.log("Response Status:", res.status);
+  console.log("Response Headers:", res.headers);
+
+  // Handle non-200 status codes
+  if (res.status !== 200) {
+    const errorBody = await res.text();
+    console.error("Error Response Body:", errorBody);
+    throw new Error(
+      `Together API returned non-200 status: ${res.status} - ${res.statusText}`
+    );
+  }
+
   const readableStream = new ReadableStream({
     async start(controller) {
-      // callback
       const onParse = (event: ParsedEvent | ReconnectInterval) => {
         if (event.type === "event") {
           const data = event.data;
@@ -49,26 +57,16 @@ export async function TogetherAIStream(payload: TogetherAIStreamPayload) {
         }
       };
 
-      // optimistic error handling
-      if (res.status !== 200) {
-        const data = {
-          status: res.status,
-          statusText: res.statusText,
-          body: await res.text(),
-        };
-        console.log(
-          `Error: recieved non-200 status code, ${JSON.stringify(data)}`,
-        );
-        controller.close();
-        return;
-      }
-
-      // stream response (SSE) from OpenAI may be fragmented into multiple chunks
-      // this ensures we properly read chunks and invoke an event for each SSE event stream
       const parser = createParser(onParse);
-      // https://web.dev/streams/#asynchronous-iteration
-      for await (const chunk of res.body as any) {
-        parser.feed(decoder.decode(chunk));
+
+      // Process the stream data
+      try {
+        for await (const chunk of res.body as any) {
+          parser.feed(decoder.decode(chunk));
+        }
+      } catch (e) {
+        console.error("Error processing stream:", e);
+        controller.error(e);
       }
     },
   });
@@ -77,27 +75,34 @@ export async function TogetherAIStream(payload: TogetherAIStreamPayload) {
   const transformStream = new TransformStream({
     async transform(chunk, controller) {
       const data = decoder.decode(chunk);
-      // https://beta.openai.com/docs/api-reference/completions/create#completions/create-stream
+
       if (data === "[DONE]") {
         controller.terminate();
         return;
       }
+
       try {
         const json = JSON.parse(data);
-        const text = json.choices[0].delta?.content || "";
-        if (counter < 2 && (text.match(/\n/) || []).length) {
-          // this is a prefix character (i.e., "\n\n"), do nothing
+
+        // Debug the JSON response
+        console.log("Parsed JSON Response:", json);
+
+        const text = json.choices?.[0]?.delta?.content || "";
+        if (!text) {
+          console.warn("Missing 'content' field in delta:", json);
           return;
         }
-        // stream transformed JSON resposne as SSE
+
+        if (counter < 2 && (text.match(/\n/) || []).length) {
+          // Skip prefix characters like "\n\n"
+          return;
+        }
+
         const payload = { text: text };
-        // https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#event_stream_format
-        controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify(payload)}\n\n`),
-        );
+        controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
         counter++;
       } catch (e) {
-        // maybe parse error
+        console.error("Error parsing JSON:", e, "Chunk Data:", data);
         controller.error(e);
       }
     },

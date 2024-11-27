@@ -99,3 +99,14 @@ export const getSystemPrompt = (
   Please return answer in markdown. It is very important for my career that you follow these instructions. Here is the topic to educate on:
     `;
 };
+
+// New function to load Grade 6 Standards
+export async function loadGrade6Standards() {
+  const response = await fetch("/standards/grade6_standards.json"); // Path where the JSON file is stored
+  if (!response.ok) {
+    throw new Error("Failed to load Grade 6 standards data");
+  }
+  const data = await response.json();
+  console.log("Loaded Grade 6 Standards:", data);
+  return data;
+}
