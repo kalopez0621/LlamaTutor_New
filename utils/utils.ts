@@ -52,25 +52,27 @@ type suggestionType = {
 export const suggestions: suggestionType[] = [
   {
     id: 1,
-    name: "Basketball",
-    icon: "/basketball-new.svg",
+    name: "Number Sense and Operations",
+    icon: "/operations.PNG", // Correct path to the icon
   },
   {
     id: 2,
-    name: "Machine Learning",
-    icon: "/light-new.svg",
+    name: "Algebraic Reasoning",
+    icon: "/algebraic-reasoning.PNG", // Correct path to the icon
   },
   {
     id: 3,
-    name: "Personal Finance",
-    icon: "/finance.svg",
+    name: "Geometric Reasoning",
+    icon: "/geometric-reasoning.PNG", // Correct path to the icon
   },
   {
     id: 4,
-    name: "U.S History",
-    icon: "/us.svg",
+    name: "Data Analysis & Probability",
+    icon: "/dataanalysis-probability.PNG", // Correct path to the icon
   },
 ];
+
+
 
 export const getSystemPrompt = (
   finalResults: { fullContent: string }[],

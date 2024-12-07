@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import fs from "fs";
+import path from "path";
 
 let excludedSites = ["youtube.com"];
 let searchEngine: "bing" | "serper" = "serper";
@@ -9,6 +11,26 @@ export async function POST(request: Request) {
 
   const finalQuestion = `what is ${question}`;
 
+  // Step 1: Check if the topic exists in the local JSON file for benchmarks
+  try {
+    const benchmarksPath = path.resolve("./public/standards/grade6_benchmarks.json");
+    const benchmarksData = JSON.parse(fs.readFileSync(benchmarksPath, "utf8"));
+
+    const matchingBenchmarks = benchmarksData.benchmarks.filter((benchmark: string) =>
+      benchmark.toLowerCase().includes(question.toLowerCase())
+    );
+
+    if (matchingBenchmarks.length > 0) {
+      return NextResponse.json({
+        sources: matchingBenchmarks,
+        fromLocal: true,
+      });
+    }
+  } catch (err) {
+    console.error("Error reading local benchmarks file:", err);
+  }
+
+  // Step 2: If no local data, fall back to external sources
   if (searchEngine === "bing") {
     const BING_API_KEY = process.env["BING_API_KEY"];
     if (!BING_API_KEY) {
@@ -29,7 +51,7 @@ export async function POST(request: Request) {
         headers: {
           "Ocp-Apim-Subscription-Key": BING_API_KEY,
         },
-      },
+      }
     );
 
     const BingJSONSchema = z.object({
@@ -47,7 +69,6 @@ export async function POST(request: Request) {
     }));
 
     return NextResponse.json(results);
-    // TODO: Figure out a way to remove certain results like YT
   } else if (searchEngine === "serper") {
     const SERPER_API_KEY = process.env["SERPER_API_KEY"];
     if (!SERPER_API_KEY) {
